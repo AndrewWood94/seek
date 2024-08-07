@@ -36,14 +36,9 @@ module Seek
       end
 
       def annotations
-        sparql = SPARQL::Client.new(graph)
-        query = sparql.select.where(
-          [resource_uri, :type, :value]
-        )
+        @_cached_annotations ||= query_annotations
 
-        query.execute.collect do |prop|
-          [prop.type.to_s, prop.value.to_s]
-        end
+
       end
 
       def additional_metadata_annotations
@@ -104,10 +99,23 @@ module Seek
         additional_metadata_annotations.each do |annotation|
           property = annotation[0]
           value = annotation[1]
-          attribute = extended_metadata_type.extended_metadata_attributes.where(property_type_id: property).first
+          attribute = extended_metadata_type.extended_metadata_attributes.where(pid: property).first
           data[attribute.title] = value if attribute
         end
         seek_resource.extended_metadata.data = data
+      end
+
+      private
+
+      def query_annotations
+        sparql = SPARQL::Client.new(graph)
+        query = sparql.select.where(
+          [resource_uri, :type, :value]
+        )
+
+        query.execute.collect do |prop|
+          [prop.type.to_s, prop.value.to_s]
+        end
       end
     end
   end

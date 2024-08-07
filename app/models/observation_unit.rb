@@ -1,9 +1,5 @@
 class ObservationUnit < ApplicationRecord
 
-  # include Seek::Creators
-  # include Seek::ProjectAssociation
-  # include Seek::Stats::ActivityCounts
-  # include Seek::Search::CommonFields, Seek::Search::BackgroundReindexing
   include Seek::Rdf::RdfGeneration
 
   acts_as_asset
@@ -11,8 +7,10 @@ class ObservationUnit < ApplicationRecord
   belongs_to :contributor, class_name: 'Person'
   belongs_to :study
   has_many :samples
-  has_many :observation_unit_assets, dependent: :destroy
-  has_many :data_files, through: :observation_unit_assets, source: :asset, source_type: 'DataFile'
+  has_many :observation_unit_assets, inverse_of: :observation_unit, dependent: :delete_all, autosave: true
+  has_many :data_files, through: :observation_unit_assets, source: :asset, source_type: 'DataFile', inverse_of: :observation_units
+
+  accepts_nested_attributes_for :data_files, allow_destroy: true
 
   has_extended_metadata
 

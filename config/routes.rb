@@ -1,5 +1,4 @@
 SEEK::Application.routes.draw do
-
   resources :observed_variable_sets
   resources :observed_variables
   use_doorkeeper do
@@ -501,8 +500,13 @@ SEEK::Application.routes.draw do
       post :retrieve_nels_sample_metadata
       get :retrieve_nels_sample_metadata
       get :has_matching_sample_type
+      post :unzip
+      get :unzip_status
+      get :confirm_unzip
+      delete :cancel_unzip
+      get :unzip_persistence_status
     end
-    resources :people, :programmes, :projects, :investigations, :assays, :samples, :studies, :publications, :events, :collections, :workflows, :file_templates, :placeholders, :observation_units, only: [:index]
+    resources :people, :programmes, :projects, :investigations, :assays, :data_files, :samples, :studies, :publications, :events, :collections, :workflows, :file_templates, :placeholders, :observation_units, only: [:index]
   end
 
   resources :presentations, concerns: [:has_content_blobs, :publishable, :has_versions, :asset, :explorable_spreadsheet] do
@@ -531,6 +535,7 @@ SEEK::Application.routes.draw do
       post :create_from_ro_crate
       post :create_from_files
       post :create_from_git
+      post :submit
       get :provide_metadata
       get :annotate_repository
       post :create_metadata
@@ -541,12 +546,14 @@ SEEK::Application.routes.draw do
     member do
       get :diagram
       get :ro_crate
+      get :ro_crate_metadata
       get :new_version
       get :new_git_version
       post :create_version_metadata
       post :create_version_from_git
       get :edit_paths
       patch :update_paths
+      post :run
     end
     resources :people, :programmes, :projects, :investigations, :assays, :samples, :studies, :publications, :events, :sops, :collections, :presentations, :documents, :data_files, only: [:index]
   end

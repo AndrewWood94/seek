@@ -15,12 +15,20 @@ class ObservationUnitsControllerTest < ActionController::TestCase
     unit = FactoryBot.create(:max_observation_unit)
     get :show, params: { id: unit.id }
     assert_response :success
+    assert_select 'div.contribution-header h1', text:/#{unit.title}/
+    assert_select 'div#overview' do
+      assert_select 'div#description', text:/#{unit.description}/
+      assert_select 'div#extended-metadata div', text:/Extended Metadata \(simple obs unit extended metadata type\)/
+    end
   end
 
   test 'index' do
     unit = FactoryBot.create(:max_observation_unit)
     get :index
     assert_response :success
+    assert_select 'div.list_item', count: 1 do
+      assert_select 'div.list_item_title', text:/#{unit.title}/
+    end
   end
 
   test 'edit' do
@@ -98,6 +106,36 @@ class ObservationUnitsControllerTest < ActionController::TestCase
     assert_equal emt, obs_unit.extended_metadata.extended_metadata_type
     assert_equal 'updated name', obs_unit.extended_metadata.get_attribute_value('name')
     assert_equal 'updated strain', obs_unit.extended_metadata.get_attribute_value('strain')
+  end
+
+  test 'no access if fair data station disabled' do
+    unit = FactoryBot.create(:max_observation_unit)
+    login_as(unit.contributor)
+    with_config_value(:fair_data_station_enabled, false) do
+      get :show, params: { id: unit.id }
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+      get :index
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+      get :edit, params: { id: unit.id }
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+      get :manage, params: { id: unit.id }
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+      patch :update, params: { id: unit.id,
+                               observation_unit:{
+                                 title: 'updated title',
+                               }}
+      assert_redirected_to :root
+      refute_nil flash[:error]
+
+    end
   end
 
 end
